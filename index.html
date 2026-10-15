@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="title" content="From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents">
+  <meta name="description" content="Privileged Self-Practice (PSP): keep privileged information in the sampler, not the loss. Gated privileged-instruction GRPO for multi-turn LLM agents on AppWorld and SWE-bench Verified.">
+  <meta name="keywords" content="privileged information, self-distillation, on-policy distillation, GRPO, LLM agents, multi-turn agents, AppWorld, SWE-bench, reinforcement learning">
+  <meta name="author" content="Xingyu Su, Abhishek Kumar, Qing Ping, Youzhi Luo, Jonathan Buck, Zach Zhang, Subramanian Chidambaram, Vinayak Arannil">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents">
+  <meta property="og:description" content="PSP keeps privileged information in the prompt and out of the loss: when a task's rollouts fail, an analyzer writes a short instruction, the task is re-rolled with it, and plain GRPO trains on the result.">
+  <meta property="og:url" content="https://sux1ngyu.github.io/PSP/">
+  <meta property="og:image" content="https://sux1ngyu.github.io/PSP/static/images/method.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents">
+  <meta name="twitter:image" content="https://sux1ngyu.github.io/PSP/static/images/method.png">
+
+  <meta name="citation_title" content="From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents">
+  <meta name="citation_author" content="Su, Xingyu">
+  <meta name="citation_author" content="Kumar, Abhishek">
+  <meta name="citation_author" content="Ping, Qing">
+  <meta name="citation_author" content="Luo, Youzhi">
+  <meta name="citation_author" content="Buck, Jonathan">
+  <meta name="citation_author" content="Zhang, Zach">
+  <meta name="citation_author" content="Chidambaram, Subramanian">
+  <meta name="citation_author" content="Arannil, Vinayak">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_arxiv_id" content="2609.29051">
+  <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2609.29051">
+
+  <title>From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+
+  <style>
+    .fig-caption { font-size: 0.95rem; color: #475569; margin-top: 0.75rem; }
+    .fig-caption b { color: #1e293b; }
+    .results-table { margin: 0 auto; }
+    .results-table th, .results-table td { text-align: center; vertical-align: middle; }
+    .results-table td:first-child, .results-table th:first-child { text-align: left; }
+    .results-table .psp { font-weight: 700; }
+    .results-table .gain { color: #15803d; font-weight: 600; }
+    .step-list li { margin-bottom: 0.6rem; }
+    .takeaway { border-left: 4px solid #2563eb; background: #f8fafc; padding: 1rem 1.25rem; border-radius: 0 12px 12px 0; margin: 1.25rem 0; }
+    .affil { font-size: 1rem; color: #475569; }
+  </style>
+</head>
+<body>
+
+<main id="main-content">
+
+<!-- ===================== Hero ===================== -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents</h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><a href="https://sux1ngyu.github.io/" target="_blank">Xingyu Su</a><sup>1,2</sup>,</span>
+            <span class="author-block">Abhishek Kumar<sup>2</sup>,</span>
+            <span class="author-block">Qing Ping<sup>2</sup>,</span>
+            <span class="author-block">Youzhi Luo<sup>2</sup>,</span>
+            <span class="author-block">Jonathan Buck<sup>2</sup>,</span>
+            <span class="author-block">Zach Zhang<sup>2</sup>,</span>
+            <span class="author-block">Subramanian Chidambaram<sup>2</sup>,</span>
+            <span class="author-block">Vinayak Arannil<sup>2</sup></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block affil"><sup>1</sup>Texas A&amp;M University &nbsp;&nbsp; <sup>2</sup>AWS AI, Amazon</span>
+            <span class="eql-cntrb"><small><br>Work done during an internship at AWS AI.</small></span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2609.29051" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="ai ai-arxiv"></i></span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2609.29051" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://huggingface.co/papers/2609.29051" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><span style="font-size:1.1em">&#129303;</span></span>
+                  <span>Hugging Face</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#BibTeX" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-quote-right"></i></span>
+                  <span>BibTeX</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Teaser ===================== -->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img src="static/images/method.png" alt="Overview of Privileged Self-Practice (PSP)" style="width:100%;">
+      <h2 class="subtitle has-text-centered" style="margin-top:1rem;">
+        <b>TL;DR.</b> Privileged information should enter RL training through the <b>sampler</b>, not the <b>loss</b>.
+        When a task's rollouts fail, an analyzer writes a short instruction from those failures, the task is sampled again with the instruction in context, and plain GRPO trains on the result. The instruction never enters the loss and is gone at test time.
+      </h2>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Abstract ===================== -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            On-policy self-distillation (OPSD) has become a popular recipe for post-training LLM agents. It supervises the agent model at the token level with a stronger teacher view of the same model, obtained by conditioning on <em>privileged information</em> (PI).
+            In this work, we show that in multi-turn agents, this paradigm teaches the student to act with confidence but without the information behind it.
+            The trained agent behaves as if it had privileged information it never observed, and its performance falls well short of plain RL, in the worst case below the untrained base model.
+            Therefore, we propose Privileged Self-Practice (PSP), which keeps the PI and moves it from the loss to the sampler.
+            When the student's rollouts on a task mostly fail, we inject a short per-task instruction written by an analyzer model, sample the task again with the instruction in context, and train on the result with an unchanged GRPO objective.
+            The privileged information stays in the prompt and never enters the loss.
+            Across AppWorld and SWE-bench Verified, with three different student models, PSP obtains the best average score in every setting and is the only method that consistently outperforms plain GRPO, with relative improvements over GRPO of 7% to 58% in average score across settings.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Why OPSD fails ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <h2 class="title is-3 has-text-centered">Why self-distillation from a privileged teacher fails</h2>
+        <div class="content has-text-justified">
+          <p>
+            OPSD trains the student to match, token by token, the distribution of the same model conditioned on privileged information &sigma;. The target depends on &sigma;, which the student never sees, so the student can only learn the <em>form</em> of the teacher's steps, not the information that justified them. In a multi-turn agent every step is executed, so an unjustified step is not a harmless token error: it is a wrong API call, a premature "done", or a variable that was never assigned.
+          </p>
+        </div>
+        <img src="static/images/leakage.png" alt="Matching the privileged view leaks its form but not its content" style="width:100%;">
+        <p class="fig-caption has-text-justified">
+          <b>Matching the privileged view leaks its form but not its content.</b> <b>(A)</b> With the instruction &sigma; in context, the student solves the task in two turns. <b>(B)</b> The OPSD-trained student without &sigma; reproduces the two-step shape and the closing call, but queries the wrong API, declares the task done before computing anything, and submits a variable that was never assigned.
+        </p>
+        <div class="takeaway">
+          On AppWorld and SWE-bench Verified, every method that consumes the privileged view through a distillation loss (OPSD, GRPO+OPSD, SDAR, Skill-SD) falls below plain GRPO, and the pure distillation objective falls below the untrained base model.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Method ===================== -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <h2 class="title is-3 has-text-centered">Privileged Self-Practice</h2>
+        <div class="content has-text-justified">
+          <p>PSP keeps the privileged information but changes where it enters training. One training step works as follows.</p>
+          <ol class="step-list">
+            <li><b>Roll out and gate.</b> Each task is rolled out <em>n</em> times without any privileged information. If the group's success rate is at least &gamma;, the group enters the GRPO update unchanged. With &gamma; = 0.1 and <em>n</em> = 8, the gate fires exactly on the groups where every rollout failed, which is where GRPO has no gradient.</li>
+            <li><b>Write an instruction.</b> For a gated task, an analyzer model (Qwen3.6-27B, frozen) reads the group's own failed rollouts and one reference trajectory, and writes a short per-task instruction &sigma;: a few rules about what to do, not a solution.</li>
+            <li><b>Practice with it.</b> The task is sampled again with &sigma; prepended as a system message. This privileged group replaces the task's failed group, and the batch is trained with the unchanged GRPO objective, under the context each group was sampled from.</li>
+          </ol>
+          <p>
+            Nothing else changes: no distillation loss, no importance weight across views, no teacher-student KL. As the student learns to solve a task, its group stops being gated and training anneals back to plain GRPO on its own.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Results ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <h2 class="title is-3 has-text-centered">Results</h2>
+        <div class="content has-text-justified">
+          <p>
+            Two benchmarks (AppWorld, SWE-bench Verified with the mini-swe-agent scaffold) and three students (Qwen3-4B, Qwen3-8B, Gemma4-E4B). All methods share the same privileged information and the same rollout budget; the only difference is how the privileged view is consumed. Scores are means over 5 evaluation seeds. The average column is the mean over the eight metrics on AppWorld (TGC, SGC, TGC@5, SGC@5 on test-normal and test-challenge) and over the four on SWE-bench (resolved and pass@5 for both students).
+          </p>
+        </div>
+        <table class="table is-striped is-hoverable results-table">
+          <thead>
+            <tr>
+              <th>Setting</th>
+              <th>Primary metric</th>
+              <th>GRPO</th>
+              <th>PSP</th>
+              <th>Avg, GRPO</th>
+              <th>Avg, PSP</th>
+              <th>Rel. gain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>AppWorld, Qwen3-4B</td><td>test-normal TGC</td><td>13.2</td><td class="psp">21.8</td><td>10.6</td><td class="psp">16.7</td><td class="gain">+58%</td></tr>
+            <tr><td>AppWorld, Qwen3-8B</td><td>test-normal TGC</td><td>30.8</td><td class="psp">31.6</td><td>25.6</td><td class="psp">27.4</td><td class="gain">+7%</td></tr>
+            <tr><td>AppWorld, Gemma4-E4B</td><td>test-normal TGC</td><td>33.9</td><td class="psp">38.6</td><td>27.2</td><td class="psp">32.5</td><td class="gain">+19%</td></tr>
+            <tr><td>SWE-bench Verified, Qwen3-4B / 8B</td><td>resolved</td><td>3.68 / 7.08</td><td class="psp">5.92 / 8.36</td><td>8.35</td><td class="psp">10.57</td><td class="gain">+27%</td></tr>
+          </tbody>
+        </table>
+        <div class="content has-text-justified">
+          <p>
+            PSP obtains the best average score in every setting and is the only method that consistently outperforms plain GRPO. The margin is largest on the weakest student, where most training groups contain no success and GRPO has nothing to learn from. The full tables with all seven baselines are in the paper.
+          </p>
+        </div>
+        <img src="static/images/gate_tau.png" alt="Effect of the gate threshold" style="width:100%; margin-top:1rem;">
+        <p class="fig-caption has-text-justified">
+          <b>Effect of the gate threshold &gamma;.</b> Test TGC (mean &plusmn; std over 5 seeds) as &gamma; varies. <em>always</em> removes the gate, trains both groups for every task and doubles the rollouts per step; it does not improve on the gated method and can fall below GRPO. Dotted lines mark GRPO; rings mark the &gamma; selected on the validation set.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Why it transfers ===================== -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <h2 class="title is-3 has-text-centered">Why the gain transfers to the student without &sigma;</h2>
+        <div class="content has-text-justified">
+          <p>
+            The privileged rollouts are trained with &sigma; in context, yet the agent is evaluated without it. Three measurements explain why the update still helps the unconditioned student: the instruction decides only one to three turns of a rollout, the remaining turns are ones the student could already have written, and the trajectory-level reward reinforces all of them. On those turns the gradients of the two views are aligned, so the update on the privileged view raises the non-privileged likelihood of the same rollout.
+          </p>
+        </div>
+        <div class="columns is-vcentered">
+          <div class="column is-7">
+            <img src="static/images/why_work.png" alt="The instruction acts on a few turns" style="width:100%;">
+            <p class="fig-caption has-text-justified">
+              <b>The instruction acts on a few turns; the reward reinforces all of them.</b> (a) Per-turn dependence on &sigma; for one successful rollout: large where &sigma; decides the action, near zero where the student writes the same thing on its own. (b) Number of decisive turns across successful privileged rollouts on training tasks the base model does not solve: usually one, never more than three.
+            </p>
+          </div>
+          <div class="column is-5">
+            <img src="static/images/fig_annealing.png" alt="The guidance anneals itself" style="width:100%;">
+            <p class="fig-caption has-text-justified">
+              <b>The guidance anneals itself.</b> Gate telemetry on Qwen3-4B (&gamma; = 0.1). The fraction of gated groups falls from 0.86 to 0.42 as the student's unguided train pass rate rises from 0.06 to 0.50. No schedule is involved: tasks leave the gated set as the student learns to solve them.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BibTeX ===================== -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <div class="bibtex-header">
+      <h2 class="title">BibTeX</h2>
+      <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX to clipboard">
+        <i class="fas fa-copy"></i>
+        <span class="copy-text">Copy</span>
+      </button>
+    </div>
+    <pre id="bibtex-code"><code>@article{su2026psp,
+  title   = {From Self-Distillation to Self-Practice: Privileged Information for Multi-Turn Agents},
+  author  = {Su, Xingyu and Kumar, Abhishek and Ping, Qing and Luo, Youzhi and Buck, Jonathan and Zhang, Zach and Chidambaram, Subramanian and Arannil, Vinayak},
+  journal = {arXiv preprint arXiv:2609.29051},
+  year    = {2026}
+}</code></pre>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>, which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyBibTeX() {
+  const el = document.getElementById('bibtex-code');
+  const button = document.querySelector('.copy-bibtex-btn');
+  const label = button.querySelector('.copy-text');
+  const done = () => { button.classList.add('copied'); label.textContent = 'Cop'; setTimeout(() => { button.classList.remove('copied'); label.textContent = 'Copy'; }, 2000); };
+  navigator.clipboard.writeText(el.textContent).then(done).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = el.textContent; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done();
+  });
+}
+</script>
+
+</body>
+</html>
